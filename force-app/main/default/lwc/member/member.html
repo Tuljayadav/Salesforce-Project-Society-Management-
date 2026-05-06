@@ -1,0 +1,60 @@
+<template>
+
+    <!-- Show only when family selected -->
+    <template if:true={familyId}>
+
+        <lightning-card title="Member Dashboard">
+
+            <!-- Button -->
+            <lightning-button 
+                label="Add Member"
+                icon-name="utility:user" 
+                variant="brand"
+                onclick={openModal}>
+            </lightning-button>
+
+            <!-- Search -->
+            <lightning-input
+                type="search"
+                label="Search Member"
+                onchange={handleSearch}>
+            </lightning-input>
+
+            <!-- Table -->
+            <lightning-datatable
+                key-field="Id"
+                data={members}
+                columns={columns}>
+            </lightning-datatable>
+
+        </lightning-card>
+
+    </template>
+
+    <!-- Modal -->
+    <template if:true={showModal}>
+        <section class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+
+                <header class="slds-modal__header">
+                    <h2>Add Member</h2>
+                </header>
+
+                <div class="slds-modal__content slds-p-around_medium">
+                    <lightning-input label="Name" required onchange={handleName}></lightning-input>
+                    <lightning-input label="Address" required onchange={handleAddress}></lightning-input>
+                    <lightning-input type="number" label="Age" required onchange={handleAge}></lightning-input>
+                    <lightning-input label="Phone" required onchange={handlePhone}></lightning-input>
+                </div>
+
+                <footer class="slds-modal__footer">
+                    <lightning-button label="Cancel" onclick={closeModal}></lightning-button>
+                    <lightning-button label="Save" variant="brand" onclick={saveMember}></lightning-button>
+                </footer>
+
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
+
+</template>
