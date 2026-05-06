@@ -48,8 +48,11 @@
                 </div>
 
                 <footer class="slds-modal__footer">
-                    <lightning-button label="Cancel" onclick={closeModal}></lightning-button>
-                    <lightning-button label="Save" variant="brand" onclick={saveMember}></lightning-button>
+                    <lightning-button 
+                    label="Cancel" 
+                    onclick={closeModal}>
+                </lightning-button>
+                    <lightning-button label="Save" variant="brand" onclick={handleSaveMember}></lightning-button>
                 </footer>
 
             </div>

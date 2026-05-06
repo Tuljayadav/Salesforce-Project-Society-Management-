@@ -55,7 +55,7 @@
     </template>
 
 
-    <!-- 🔥 ADD MODAL -->
+    <!--  ADD FAMILY MODAL -->
     <template if:true={showModal}>
         <section class="slds-modal slds-fade-in-open">
             <div class="slds-modal__container">
@@ -70,6 +70,7 @@
                         onchange={handleFamilyName}>
                     </lightning-input>
                 </div>
+                 
 
                 <footer class="slds-modal__footer">
                     <lightning-button label="Cancel" onclick={closeModal}></lightning-button>
@@ -82,7 +83,7 @@
     </template>
 
 
-    <!-- 🔥 EDIT MODAL -->
+    <!-- EDIT MODAL -->
     <template if:true={showEditModal}>
         <section class="slds-modal slds-fade-in-open">
             <div class="slds-modal__container">
@@ -97,6 +98,15 @@
                         value={familyName}
                         onchange={handleFamilyName}>
                     </lightning-input>
+
+                    <!-- 🔥 HEAD OF FAMILY (FILTERED DROPDOWN) -->
+                    <lightning-combobox
+                        label="Head of Family"
+                        value={selectedHeadId}
+                        options={memberOptions}
+                        placeholder="Select Head"
+                        onchange={handleHeadChange}>
+                    </lightning-combobox>
                 </div>
 
                 <footer class="slds-modal__footer">

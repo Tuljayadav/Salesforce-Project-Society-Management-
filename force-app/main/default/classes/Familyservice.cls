@@ -38,11 +38,23 @@ public static void deleteFamily(Id familyId) {
     }
 }
 @AuraEnabled
-    public static void updateFamily(Id familyId, String familyName) {
+    public static void updateFamily(Id familyId, String familyName, Id headId) {
         Family__c fam = new Family__c(
             Id = familyId,
-            Name = familyName
+            Name = familyName,
+            Head_of_Family__c = headId
         );
         update fam;
     }
+
+
+@AuraEnabled(cacheable=true)
+public static List<Member__c> getFamilyMembers(Id familyId) {
+    return [
+        SELECT Id, Name
+        FROM Member__c
+        WHERE Family__c = :familyId
+        ORDER BY Name
+    ];
+}
 }
