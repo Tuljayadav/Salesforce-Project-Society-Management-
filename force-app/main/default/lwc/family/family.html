@@ -55,7 +55,7 @@
     </template>
 
 
-    <!--  ADD FAMILY MODAL -->
+    <!-- 🔥 ADD MODAL -->
     <template if:true={showModal}>
         <section class="slds-modal slds-fade-in-open">
             <div class="slds-modal__container">
@@ -67,10 +67,35 @@
                 <div class="slds-modal__content slds-p-around_medium">
                     <lightning-input 
                         label="Family Name"
+                        required
                         onchange={handleFamilyName}>
                     </lightning-input>
+
+                    <lightning-input
+                        label="Head Name"
+                        required
+                        onchange={handleMemberName}>
+                    </lightning-input>
+
+                    <lightning-input
+                        label="Address"
+                        required
+                        onchange={handleAddress}>
+                    </lightning-input>
+
+                    <lightning-input
+                        type="number"
+                        label="Age"
+                        required
+                        onchange={handleAge}>
+                    </lightning-input>
+
+                    <lightning-input
+                        label="Phone"
+                        required
+                        onchange={handlePhone}>
+                    </lightning-input>
                 </div>
-                 
 
                 <footer class="slds-modal__footer">
                     <lightning-button label="Cancel" onclick={closeModal}></lightning-button>
@@ -83,7 +108,7 @@
     </template>
 
 
-    <!-- EDIT MODAL -->
+    <!-- 🔥 EDIT MODAL -->
     <template if:true={showEditModal}>
         <section class="slds-modal slds-fade-in-open">
             <div class="slds-modal__container">
@@ -99,14 +124,13 @@
                         onchange={handleFamilyName}>
                     </lightning-input>
 
-                    <!-- 🔥 HEAD OF FAMILY (FILTERED DROPDOWN) -->
                     <lightning-combobox
-                        label="Head of Family"
-                        value={selectedHeadId}
-                        options={memberOptions}
-                        placeholder="Select Head"
-                        onchange={handleHeadChange}>
-                    </lightning-combobox>
+                    label="Head of Family"
+                    value={selectedHeadId}
+                    options={memberOptions}
+                    placeholder="Select Head"
+                    onchange={handleHeadChange}>
+                </lightning-combobox>
                 </div>
 
                 <footer class="slds-modal__footer">

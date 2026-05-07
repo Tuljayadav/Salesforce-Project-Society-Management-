@@ -2,8 +2,7 @@ import { LightningElement, track, wire } from 'lwc';
 import searchFamily from '@salesforce/apex/Familyservice.searchFamily';
 import createFamilyWithHead from '@salesforce/apex/Familyservice.createFamilyWithHead';
 import deleteFamily from '@salesforce/apex/Familyservice.deleteFamily';
-import updateFamily from '@salesforce/apex/Familyservice.updateFamily';
-import getFamilyMembers from '@salesforce/apex/Familyservice.getFamilyMembers';
+import updateFamily from '@salesforce/apex/Familyservice.updateFamily'; import getFamilyMembers from '@salesforce/apex/Familyservice.getFamilyMembers';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import { refreshApex } from '@salesforce/apex';
 
@@ -11,6 +10,7 @@ export default class FamilyDashboard extends LightningElement {
 
     @track families = [];
     searchKey = '';
+
     @track memberOptions = [];
     selectedHeadId;
 
@@ -19,7 +19,11 @@ export default class FamilyDashboard extends LightningElement {
     isLoading = false;
 
     familyName;
-    // headId;
+
+    memberName;
+    address;
+    age;
+    phone;
     selectedFamilyId;
     showMembers = false;
 
@@ -82,7 +86,6 @@ export default class FamilyDashboard extends LightningElement {
         this.searchKey = event.target.value;
     }
 
-
     // ✅ ALL BUTTON HANDLING
     handleRowAction(event) {
         const actionName = event.detail.action.name;
@@ -105,29 +108,45 @@ export default class FamilyDashboard extends LightningElement {
             this.showDeleteModal = true;
         }
 
-        // 🔥 EDIT
         else if (actionName === 'edit') {
+
     this.selectedFamilyId = row.Id;
+
     this.familyName = row.Name;
 
-    // 🔥 existing head prefill
     this.selectedHeadId = row.Head_of_Family__c;
 
-    this.showEditModal = true;
-
-    // 🔥 load ONLY that family members
+    // 🔥 Load members of same family
     getFamilyMembers({ familyId: row.Id })
+
     .then(result => {
-        this.memberOptions = result.map(m => ({
-            label: m.Name,
-            value: m.Id
-        }));
+
+        this.memberOptions = result.map(member => {
+
+            return {
+                label: member.Name,
+                value: member.Id
+            };
+        });
+
+        // modal AFTER loading options
+        this.showEditModal = true;
     })
+
     .catch(error => {
+
         console.error(error);
+
+        this.memberOptions = [];
+
+        this.showToast(
+            'Error',
+            'Error loading family members',
+            'error'
+        );
     });
-   }
 }
+    }
 
     // 🔥 DELETE CONFIRM
     confirmDelete() {
@@ -163,9 +182,26 @@ export default class FamilyDashboard extends LightningElement {
     handleFamilyName(e) {
         this.familyName = e.target.value;
     }
-    handleHeadChange(event) {
-    this.selectedHeadId = event.detail.value;
+    handleMemberName(event) {
+    this.memberName = event.target.value;
     }
+
+    handleAddress(event) {
+        this.address = event.target.value;
+    }
+
+    handleAge(event) {
+        this.age = event.target.value;
+    }
+
+    handlePhone(event) {
+        this.phone = event.target.value;
+    }
+    handleHeadChange(event) {
+
+    this.selectedHeadId = event.detail.value;
+}
+    
 
     // ✅ CREATE FAMILY
     saveFamily() {
@@ -175,13 +211,21 @@ export default class FamilyDashboard extends LightningElement {
         }
 
         createFamilyWithHead({
-             familyName: this.familyName
-            //   headId: this.headId
-         })
+
+    familyName: this.familyName,
+    memberName: this.memberName,
+    address: this.address,
+    age: this.age,
+    phone: this.phone
+})
         .then(() => {
             this.showToast('Success', 'Family Created', 'success');
             this.showModal = false;
             this.familyName = '';
+            this.memberName = '';
+            this.address = '';
+            this.age = '';
+            this.phone = '';
             return refreshApex(this.wiredResult);
         })
         .catch(error => {
@@ -192,10 +236,12 @@ export default class FamilyDashboard extends LightningElement {
 
     // ✅ UPDATE FAMILY
     updateFamilyHandler() {
+        console.log('HEAD ID BEFORE UPDATE:', this.selectedHeadId);
+
         updateFamily({
             familyId: this.selectedFamilyId,
             familyName: this.familyName,
-             headId: this.selectedHeadId
+            headId: this.selectedHeadId
         })
         .then(() => {
             this.showToast('Success', 'Family updated', 'success');

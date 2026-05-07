@@ -33,7 +33,7 @@ export default class MemberDashboard extends LightningElement {
         this.wiredResult = result;
 
         if (result.data) {
-            this.members= result.data;
+            this.members = result.data;
         } else if (result.error) {
             console.error(result.error);
         }
@@ -61,46 +61,39 @@ export default class MemberDashboard extends LightningElement {
     handlePhone(e) { this.phone = e.target.value; }
 
     //  Save Member 
-    handleSaveMember() {
+    handlesaveMember() {
 
-    console.log('CLICK WORKING'); // debug
+        if (!this.name || !this.address || !this.age || !this.phone) {
+            this.showToast('Error', 'All fields are required', 'error');
+            return;
+        }
+        console.log('DATA:', this.name, this.address, this.age, this.phone, this.familyId);
+        createMember({
+            name: this.name,
+            address: this.address,
+            age: this.age,
+            phone: this.phone,
+            familyId: this.familyId 
+        })
+        
+        .then(() => {
+            this.showToast('Success', 
+                'Member Created',
+                 'success');
 
-    if (!this.name || !this.address || !this.age || !this.phone) {
-        this.showToast('Error', 'All fields are required', 'error');
-        return;
+            this.showModal = false;
+            this.name = '';
+            this.address = '';
+            this.age = null;
+            this.phone = '';
+
+            return refreshApex(this.wiredResult);
+        })
+        .catch(error => {
+            console.error(error);
+            this.showToast('Error', 'Error creating member', 'error');
+        });
     }
-
-    createMember({
-        name: this.name,
-        address: this.address,
-        age: this.age,
-        phone: this.phone,
-        familyId: this.familyId
-    })
-    .then(() => {
-        this.showToast('Success', 'Member Created', 'success');
-
-        // reset fields
-        this.name = '';
-        this.address = '';
-        this.age = null;
-        this.phone = '';
-
-        this.showModal = false;
-
-        refreshApex(this.wiredResult);
-    })
-    .catch(error => {
-        console.error(error);
-
-        this.showToast(
-            'Error',
-            error?.body?.message || 'Error creating member',
-            'error'
-        );
-    });
-
-}
 
     //  Toast
     showToast(title, message, variant) {

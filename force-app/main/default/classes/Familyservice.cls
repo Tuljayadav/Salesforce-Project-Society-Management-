@@ -17,19 +17,48 @@ public with sharing class Familyservice {
 
 
     @AuraEnabled
-    public static Family__c createFamilyWithHead(String familyName) {
+public static void createFamilyWithHead(
+    String familyName,
+    String memberName,
+    String address,
+    Integer age,
+    String phone
+) {
 
-        Family__c fam = new Family__c();
-        fam.Name = familyName;
+    // 1️⃣ Create Family
+    Family__c fam = new Family__c();
+    fam.Name = familyName;
 
+    insert fam;
 
-        // if(headId != null){
-        //     fam.Head_of_Family__c = headId;
-        // }
+    // 2️⃣ Create Member
+    Member__c mem = new Member__c();
 
-        insert fam;
-        return fam;
-    }
+    mem.Name = memberName;
+    mem.Address__c = address;
+    mem.Age__c = age;
+    mem.Phone__c = phone;
+
+    mem.Family__c = fam.Id;
+
+    insert mem;
+
+    // 3️⃣ Set Head of Family
+    fam.Head_of_Family__c = mem.Id;
+
+    update fam;
+}
+
+@AuraEnabled(cacheable=true)
+public static List<Member__c> getFamilyMembers(Id familyId) {
+
+    return [
+        SELECT Id, Name
+        FROM Member__c
+        WHERE Family__c = :familyId
+        ORDER BY Name
+    ];
+}
     @AuraEnabled
 public static void deleteFamily(Id familyId) {
 
@@ -38,23 +67,12 @@ public static void deleteFamily(Id familyId) {
     }
 }
 @AuraEnabled
-    public static void updateFamily(Id familyId, String familyName, Id headId) {
+    public static void updateFamily(Id familyId, String familyName,Id headId) {
         Family__c fam = new Family__c(
             Id = familyId,
             Name = familyName,
-            Head_of_Family__c = headId
+             Head_of_Family__c = headId
         );
         update fam;
     }
-
-
-@AuraEnabled(cacheable=true)
-public static List<Member__c> getFamilyMembers(Id familyId) {
-    return [
-        SELECT Id, Name
-        FROM Member__c
-        WHERE Family__c = :familyId
-        ORDER BY Name
-    ];
-}
 }
