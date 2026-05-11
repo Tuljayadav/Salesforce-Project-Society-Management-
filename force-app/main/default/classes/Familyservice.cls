@@ -17,21 +17,21 @@ public with sharing class Familyservice {
 
 
     @AuraEnabled
-public static void createFamilyWithHead(
+    public static void createFamilyWithHead(
     String familyName,
     String memberName,
     String address,
     Integer age,
     String phone
-) {
+    ) {
 
-    // 1️⃣ Create Family
+    // Create Family
     Family__c fam = new Family__c();
     fam.Name = familyName;
 
     insert fam;
 
-    // 2️⃣ Create Member
+    //  Create Member
     Member__c mem = new Member__c();
 
     mem.Name = memberName;
@@ -43,14 +43,14 @@ public static void createFamilyWithHead(
 
     insert mem;
 
-    // 3️⃣ Set Head of Family
+    //  Set Head of Family
     fam.Head_of_Family__c = mem.Id;
 
     update fam;
 }
 
-@AuraEnabled(cacheable=true)
-public static List<Member__c> getFamilyMembers(Id familyId) {
+    @AuraEnabled(cacheable=true)
+    public static List<Member__c> getFamilyMembers(Id familyId) {
 
     return [
         SELECT Id, Name
@@ -60,13 +60,13 @@ public static List<Member__c> getFamilyMembers(Id familyId) {
     ];
 }
     @AuraEnabled
-public static void deleteFamily(Id familyId) {
+    public static void deleteFamily(Id familyId) {
 
     if(familyId != null){
         delete [SELECT Id FROM Family__c WHERE Id = :familyId LIMIT 1];
     }
 }
-@AuraEnabled
+   @AuraEnabled
     public static void updateFamily(Id familyId, String familyName,Id headId) {
         Family__c fam = new Family__c(
             Id = familyId,

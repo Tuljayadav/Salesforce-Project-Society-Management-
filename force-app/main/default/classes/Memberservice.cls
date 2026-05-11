@@ -25,4 +25,35 @@ public with sharing class Memberservice {
         return m;
     }
 
+    @AuraEnabled
+    public static void updateMember(
+            Id memberId,
+            String name,
+            String address,
+            Integer age,
+            String phone
+) {
+
+    Member__c m = new Member__c(
+        Id = memberId,
+        Name = name,
+        address__c = address,
+        age__c = age,
+        phone__c = phone
+    );
+
+    update m;
+}
+
+    @AuraEnabled
+    public static void deleteMember(Id memberId) {
+
+    delete [
+        SELECT Id
+        FROM Member__c
+        WHERE Id = :memberId
+        LIMIT 1
+    ];
+}
+
 }

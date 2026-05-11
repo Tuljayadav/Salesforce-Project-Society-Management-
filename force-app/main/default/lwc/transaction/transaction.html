@@ -1,3 +1,13 @@
 <template>
-    
+
+    <lightning-card title="Transaction Dashboard">
+
+        <lightning-datatable
+            key-field="Id"
+            data={transactions}
+            columns={columns}>
+        </lightning-datatable>
+
+    </lightning-card>
+
 </template>

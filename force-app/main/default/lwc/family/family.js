@@ -32,12 +32,12 @@ export default class FamilyDashboard extends LightningElement {
 
     wiredResult;
 
-    // ✅ COLUMNS (View button + Dropdown BOTH)
+    //  COLUMNS (View button + Dropdown BOTH)
     columns = [
         { label: 'Family Name', fieldName: 'Name' },
         { label: 'Head of Family', fieldName: 'headName' },
 
-        // 🔥 View Members button (DO NOT REMOVE)
+        //  View Members button 
         {
             label: 'View Members',
             type: 'button',
@@ -50,7 +50,7 @@ export default class FamilyDashboard extends LightningElement {
             }
         },
 
-        // 🔥 Dropdown (Edit/Delete)
+        //  Dropdown (Edit/Delete)
         {
             type: 'action',
             typeAttributes: {
@@ -62,7 +62,7 @@ export default class FamilyDashboard extends LightningElement {
         }
     ];
 
-    // ✅ DATA LOAD
+    //  DATA LOAD
     @wire(searchFamily, { searchKey: '$searchKey' })
     wiredFamilies(result) {
         this.wiredResult = result;
@@ -81,12 +81,12 @@ export default class FamilyDashboard extends LightningElement {
         }
     }
 
-    // ✅ SEARCH
+    //  SEARCH
     handleSearch(event) {
         this.searchKey = event.target.value;
     }
 
-    // ✅ ALL BUTTON HANDLING
+    // ALL BUTTON HANDLING
     handleRowAction(event) {
         const actionName = event.detail.action.name;
         const row = event.detail.row;
@@ -95,13 +95,13 @@ export default class FamilyDashboard extends LightningElement {
         console.log('ROW ID:', row.Id);
 
 
-        // 🔥 VIEW MEMBERS (IMPORTANT)
+        //  VIEW MEMBERS (IMPORTANT)
         if (actionName === 'view_members') {
             this.selectedFamilyId = row.Id;
             this.showMembers = true;
         }
 
-        // 🔥 DELETE
+        //  DELETE
         else if (actionName === 'delete') {
             this.deleteRecordId = row.Id;
             this.familyName = row.Name;
@@ -116,7 +116,7 @@ export default class FamilyDashboard extends LightningElement {
 
     this.selectedHeadId = row.Head_of_Family__c;
 
-    // 🔥 Load members of same family
+    //  Load members of same family
     getFamilyMembers({ familyId: row.Id })
 
     .then(result => {
@@ -148,7 +148,7 @@ export default class FamilyDashboard extends LightningElement {
 }
     }
 
-    // 🔥 DELETE CONFIRM
+    //  DELETE CONFIRM
     confirmDelete() {
         deleteFamily({ familyId: this.deleteRecordId })
         .then(() => {
@@ -166,7 +166,7 @@ export default class FamilyDashboard extends LightningElement {
         this.showDeleteModal = false;
     }
 
-    // ✅ MODALS
+    //  MODALS
     openModal() {
         this.showModal = true;
     }
@@ -203,7 +203,7 @@ export default class FamilyDashboard extends LightningElement {
 }
     
 
-    // ✅ CREATE FAMILY
+    //  CREATE FAMILY
     saveFamily() {
         if (!this.familyName) {
             this.showToast('Error', 'Family Name is required', 'error');
@@ -234,7 +234,7 @@ export default class FamilyDashboard extends LightningElement {
         });
     }
 
-    // ✅ UPDATE FAMILY
+    //  UPDATE FAMILY
     updateFamilyHandler() {
         console.log('HEAD ID BEFORE UPDATE:', this.selectedHeadId);
 
@@ -254,13 +254,13 @@ export default class FamilyDashboard extends LightningElement {
         });
     }
 
-    // ✅ BACK
+    //  BACK
     handleBack() {
         this.showMembers = false;
         this.selectedFamilyId = null;
     }
 
-    // ✅ TOAST
+    //  TOAST
     showToast(title, message, variant) {
         this.dispatchEvent(
             new ShowToastEvent({ title, message, variant })

@@ -1,15 +1,11 @@
 <template>
 
-    <!-- 🔥 FAMILY SCREEN -->
+    <!--  FAMILY SCREEN -->
     <template if:false={showMembers}>
 
         <lightning-card title="Family Dashboard">
-        
-            <!-- 🔥 BUTTON RIGHT + SEARCH LEFT -->
-             
-
-                <!-- ADD BUTTON (RIGHT SIDE) -->
-                 <div class="slds-col slds-size_1-of-1 slds-text-align_right">
+         <!-- ADD BUTTON (RIGHT SIDE) -->
+        <div class="slds-col slds-size_1-of-1 slds-text-align_right">
                 <lightning-button 
                     label="Add Family"
                     icon-name="utility:user" 
@@ -42,7 +38,7 @@
     </template>
 
 
-    <!-- 🔥 MEMBER SCREEN (FULL PAGE SWITCH) -->
+    <!--  MEMBER SCREEN (FULL PAGE SWITCH) -->
     <template if:true={showMembers}>
 
         <lightning-button 
@@ -55,7 +51,7 @@
     </template>
 
 
-    <!-- 🔥 ADD MODAL -->
+    <!-- ADD MODAL -->
     <template if:true={showModal}>
         <section class="slds-modal slds-fade-in-open">
             <div class="slds-modal__container">
@@ -108,7 +104,7 @@
     </template>
 
 
-    <!-- 🔥 EDIT MODAL -->
+    <!--  EDIT MODAL -->
     <template if:true={showEditModal}>
         <section class="slds-modal slds-fade-in-open">
             <div class="slds-modal__container">
@@ -143,7 +139,7 @@
         <div class="slds-backdrop slds-backdrop_open"></div>
     </template>
 
-    <!-- 🔥 DELETE CONFIRM MODAL -->
+    <!--  DELETE CONFIRM MODAL -->
     <template if:true={showDeleteModal}>
         <section class="slds-modal slds-fade-in-open">
             <div class="slds-modal__container">
