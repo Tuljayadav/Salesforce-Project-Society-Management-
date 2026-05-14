@@ -52,7 +52,7 @@
     <template if:true={showTransactions}>
 
         <lightning-button
-            label="⬅ Back"
+            label="⬅ Back to member"
             onclick={handleBackTransaction}>
         </lightning-button>
 
@@ -77,22 +77,26 @@
 
                     <lightning-input 
                         label="Name"
+                        required
                         onchange={handleName}>
                     </lightning-input>
 
                     <lightning-input 
                         label="Address"
+                        required
                         onchange={handleAddress}>
                     </lightning-input>
 
                     <lightning-input 
                         type="number"
                         label="Age"
+                        required
                         onchange={handleAge}>
                     </lightning-input>
 
                     <lightning-input 
                         label="Phone"
+                        required
                         onchange={handlePhone}>
                     </lightning-input>
 
@@ -225,5 +229,72 @@
         <div class="slds-backdrop slds-backdrop_open"></div>
 
     </template>
+    <!-- ADD TRANSACTION MODAL -->
+<template if:true={showTransactionModal}>
+
+    <section class="slds-modal slds-fade-in-open">
+
+        <div class="slds-modal__container">
+
+            <header class="slds-modal__header">
+
+                <h2>Add Transaction</h2>
+
+            </header>
+
+            <div class="slds-modal__content slds-p-around_medium">
+
+                <lightning-input
+                    label="Member Name"
+                    value={name}
+                    disabled>
+                </lightning-input>
+
+                <lightning-input
+                    type="date"
+                    label="Payment Date"
+                    required
+                    onchange={handlePaymentDate}>
+                </lightning-input>
+
+                <lightning-combobox
+                    label="Type"
+                    required
+                    options={typeoptions}
+                    onchange={handleTransactionType}>
+                </lightning-combobox>
+
+                <lightning-input
+                    type="number"
+                    label="Amount"
+                    required
+                    value={amount}
+                    onchange={handleAmount}>
+                </lightning-input>
+
+            </div>
+
+            <footer class="slds-modal__footer">
+
+                <lightning-button
+                    label="Cancel"
+                    onclick={closeTransactionModal}>
+                </lightning-button>
+
+                <lightning-button
+                    label="Save"
+                    variant="brand"
+                    onclick={saveTransaction}>
+                </lightning-button>
+
+            </footer>
+
+        </div>
+
+    </section>
+
+    <div class="slds-backdrop slds-backdrop_open"></div>
+
+</template>
 
 </template>

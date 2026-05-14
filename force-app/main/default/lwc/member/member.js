@@ -3,8 +3,10 @@ import getMembers from '@salesforce/apex/MemberService.getMembers';
 import createMember from '@salesforce/apex/MemberService.createMember';
 import updateMember from '@salesforce/apex/MemberService.updateMember';
 import deleteMember from '@salesforce/apex/MemberService.deleteMember';
+import createTransaction from '@salesforce/apex/TransactionService.createTransaction';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import { refreshApex } from '@salesforce/apex';
+
 
 export default class MemberDashboard extends LightningElement {
 
@@ -14,18 +16,19 @@ export default class MemberDashboard extends LightningElement {
     searchKey = '';
 
     showModal = false;
+    showEditModal = false;
+    showDeleteModal = false;
+    showTransactions = false;
+    showTransactionModal = false;
 
     name;
     address;
     age;
     phone;
 
-
-    showEditModal = false;
-    showDeleteModal = false;
-
-    showTransactions = false;
-    
+    paymentDate;
+    transactionType;
+    amount = null;   
     selectedMemberId;
 
     wiredResult;
@@ -42,12 +45,16 @@ export default class MemberDashboard extends LightningElement {
         typeAttributes: {
             rowActions: [
                 { label: 'Edit', name: 'edit' },
-                { label: 'Delete', name: 'delete' }
+                { label: 'Delete', name: 'delete' },
+                { label: 'Add Transaction', name: 'add_transaction' }
             ]
         }
     }
+ ];
 
-
+    typeoptions=[
+        {label:'Contribution',value:'Contribution'},
+        {label:'EMI',value:'EMI'}
     ];
 
     //  family search
@@ -96,10 +103,103 @@ export default class MemberDashboard extends LightningElement {
         this.showDeleteModal = true;
     }
 
+    // add transaction
+    else if(actionName === 'add_transaction') {
+
+    this.selectedMemberId = row.Id;
+
+    this.name = row.Name;
+
+    this.amount = null;
+
+    this.showTransactionModal = true;
+}
 
 }
 
-updateMemberHandler() {
+openModal() {
+        this.showModal = true;
+    }
+
+    closeModal() {
+        this.showModal = false;
+    }
+
+closeEditModal() {
+        this.showEditModal = false;
+    }
+
+    closeDeleteModal() {
+        this.showDeleteModal = false;
+    }
+    closeTransactionModal() {
+
+    this.showTransactionModal = false;
+}
+ // Inputs
+    handleName(e) { this.name = e.target.value; }
+    handleAddress(e) { this.address = e.target.value; }
+    handleAge(e) { this.age = e.target.value; }
+    handlePhone(e) { this.phone = e.target.value; }
+    handlePaymentDate(event) {
+
+    this.paymentDate = event.target.value;
+}
+
+handleTransactionType(event) {
+
+    this.transactionType = event.target.value;
+
+    // Contribution selected
+    if(this.transactionType === 'Contribution') {
+        this.amount = 500;
+    }
+    else {
+
+        this.amount = null;
+    }
+}
+
+handleAmount(event) {
+
+    this.amount = event.target.value;
+}
+
+//  Save Member 
+    handlesaveMember() {
+
+        if (!this.name || !this.address || !this.age || !this.phone) {
+            this.showToast('Error', 'All fields are required', 'error');
+            return;
+        }
+        console.log('DATA:', this.name, this.address, this.age, this.phone, this.familyId);
+        createMember({
+            name: this.name,
+            address: this.address,
+            age: this.age,
+            phone: this.phone,
+            familyId: this.familyId 
+        })
+        
+        .then(() => {
+            this.showToast('Success', 
+                'Member Created',
+                 'success');
+
+            this.showModal = false;
+            this.name = '';
+            this.address = '';
+            this.age = null;
+            this.phone = '';
+
+            return refreshApex(this.wiredResult);
+        })
+        .catch(error => {
+            console.error(error);
+            this.showToast('Error', 'Error creating member', 'error');
+        });
+    }
+    updateMemberHandler() {
 
     updateMember({
 
@@ -134,7 +234,7 @@ updateMemberHandler() {
         );
     });
 }
-
+//Delete member
 confirmDelete() {
 
     deleteMember({
@@ -165,75 +265,71 @@ confirmDelete() {
         );
     });
 }
-    closeEditModal() {
-        this.showEditModal = false;
-    }
-
-    closeDeleteModal() {
-        this.showDeleteModal = false;
-    }
-
-    // Modal
-    openModal() {
-        this.showModal = true;
-    }
-
-    closeModal() {
-        this.showModal = false;
-    }
-
     
-
-    // Inputs
-    handleName(e) { this.name = e.target.value; }
-    handleAddress(e) { this.address = e.target.value; }
-    handleAge(e) { this.age = e.target.value; }
-    handlePhone(e) { this.phone = e.target.value; }
-
-    //  Save Member 
-    handlesaveMember() {
-
-        if (!this.name || !this.address || !this.age || !this.phone) {
-            this.showToast('Error', 'All fields are required', 'error');
-            return;
-        }
-        console.log('DATA:', this.name, this.address, this.age, this.phone, this.familyId);
-        createMember({
-            name: this.name,
-            address: this.address,
-            age: this.age,
-            phone: this.phone,
-            familyId: this.familyId 
-        })
-        
-        .then(() => {
-            this.showToast('Success', 
-                'Member Created',
-                 'success');
-
-            this.showModal = false;
-            this.name = '';
-            this.address = '';
-            this.age = null;
-            this.phone = '';
-
-            return refreshApex(this.wiredResult);
-        })
-        .catch(error => {
-            console.error(error);
-            this.showToast('Error', 'Error creating member', 'error');
-        });
-    }
-
-
+// OPEN TRANSACTION PAGE
     openTransactions() {
 
-    this.showTransactions = true;
-}
+        this.showTransactions = true;
+    }
 
-handleBackTransaction() {
+    handleBackTransaction() {
 
     this.showTransactions = false;
+}
+
+saveTransaction() {
+
+    if(this.transactionType === 'Contribution' && this.amount < 500) {
+        
+        this.showToast(
+            'Error',
+            'Amount should be minimum 500',
+            'error'
+        );
+
+        return;
+    }
+
+    createTransaction({
+
+        memberId: this.selectedMemberId,
+        amount: this.amount,
+        paymentDate: this.paymentDate,
+        typeValue: this.transactionType
+    })
+    
+
+    .then(() => {
+
+        this.showToast(
+            'Success',
+            'Transaction Added',
+            'success'
+        );
+
+        this.showTransactionModal = false;
+
+// transaction component refresh
+        this.showTransactions = false;
+
+    setTimeout(() => {
+
+        this.showTransactions = true;
+
+    }, 300);
+        
+    })
+
+    .catch(error => {
+
+        console.error(error);
+
+        this.showToast(
+            'Payment Status',
+        error.body.message,
+        'warning'
+        );
+    });
 }
 
 

@@ -1,12 +1,15 @@
 import { LightningElement, api, wire, track } from 'lwc';
 
-import getTransactions from '@salesforce/apex/TransactionService.getTransactions';
+import getTransactions from '@salesforce/apex/Transactionservice.getTransactions';
+import { refreshApex } from '@salesforce/apex';
 
 export default class Transaction extends LightningElement {
 
     @api familyId;
 
     @track transactions = [];
+
+    wiredResult;
 
     columns = [
 
@@ -17,58 +20,71 @@ export default class Transaction extends LightningElement {
 
         {
             label: 'Amount',
-            fieldName: 'amount__c'
+            fieldName: 'amount'
         },
 
         {
             label: 'Type',
-            fieldName: 'type__c'
+            fieldName: 'type'
         },
 
-        {
-            label: 'Month',
-            fieldName: 'month__c'
-        },
-
-        {
-            label: 'Year',
-            fieldName: 'year__c'
-        },
 
         {
             label: 'Paid',
-            fieldName: 'paid__c',
+            fieldName: 'paid',
             type: 'boolean'
         },
 
+
         {
             label: 'Payment Date',
-            fieldName: 'payment_date__c'
+            fieldName: 'paymentDate'
         }
     ];
 
     @wire(getTransactions, { familyId: '$familyId' })
+wiredTransactions(result) {
 
-    wiredTransactions({ data, error }) {
+    this.wiredResult = result;
+
+    const { data, error } = result;
 
         if(data) {
 
-            this.transactions = data.map(row => {
+             let tempData = [];
 
-                return {
+            data.forEach(member => {
 
-                    ...row,
+                // if transaction exists
+                if(member.transactions__r) {
 
-                    memberName: row.member__r
-                        ? row.member__r.Name
-                        : ''
-                };
-            });
+                    member.transactions__r.forEach(txn => {
+
+                        tempData.push({
+
+                            memberName: member.Name,
+                            amount: txn.amount__c,
+                            type: txn.type__c,
+                            paid: txn.paid__c,
+                            paymentDate: txn.payment_date__c
+                        });
+                    });
+                }
+
+                });
+
+            this.transactions = tempData;
         }
 
         else if(error) {
 
             console.error(error);
         }
+    }
+
+    // AUTO REFRESH METHOD
+    refreshTransactionTable() {
+
+        refreshApex(this.wiredResult);
     }
 }
