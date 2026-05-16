@@ -4,6 +4,7 @@
     <template if:false={showMembers}>
 
         <lightning-card title="Family Dashboard">
+            
          <!-- ADD BUTTON (RIGHT SIDE) -->
         <div class="slds-col slds-size_1-of-1 slds-text-align_right">
                 <lightning-button 
@@ -38,18 +39,16 @@
     </template>
 
 
-    <!--  MEMBER SCREEN (FULL PAGE SWITCH) -->
-    <template if:true={showMembers}>
+    
+    <!-- MEMBER SCREEN (FULL PAGE SWITCH) -->
+<template if:true={showMembers}>
 
-        <lightning-button 
-            label="⬅ Back to Family"
-            onclick={handleBack}>
-        </lightning-button>
+    <c-member 
+        family-id={selectedFamilyId}
+        onbacktofamily={handleBack}>
+    </c-member>
 
-        <c-member family-id={selectedFamilyId}></c-member>
-
-    </template>
-
+</template>
 
     <!-- ADD MODAL -->
     <template if:true={showModal}>

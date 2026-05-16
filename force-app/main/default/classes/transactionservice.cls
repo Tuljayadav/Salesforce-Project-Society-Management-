@@ -1,6 +1,6 @@
 public with sharing class transactionservice {
 
-   @AuraEnabled(cacheable=true)
+   @AuraEnabled
 public static List<Member__c> getTransactions(Id familyId) {
 
     return [
@@ -42,6 +42,7 @@ public static void createTransaction(
         SELECT Id
         FROM Transaction__c
         WHERE member__c = :memberId
+        AND type__c = :typeValue
         AND CALENDAR_MONTH(payment_date__c) = :currentMonth
         AND CALENDAR_YEAR(payment_date__c) = :currentYear
         LIMIT 1

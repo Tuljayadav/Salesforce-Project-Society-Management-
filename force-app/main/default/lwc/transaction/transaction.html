@@ -1,13 +1,27 @@
 <template>
 
-    <lightning-card title="Transaction Dashboard">
+    <lightning-card title="Transaction  Dashboard">
+
+        <div class="slds-grid slds-gutters slds-p-left_small slds-p-bottom_small">
+
+    <lightning-button
+        label="⬅ Back to Family"
+        onclick={handleBackFamily}>
+    </lightning-button>
+
+    <lightning-button
+        label="⬅ Back to Member"
+        onclick={handleBackMember}>
+    </lightning-button>
+
+</div>
 
         <lightning-datatable
-            key-field="memberName"
+            key-field="Id"
             data={transactions}
             columns={columns}>
         </lightning-datatable>
 
-    </lightning-card>
+   </lightning-card>
 
 </template>

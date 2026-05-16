@@ -1,15 +1,12 @@
-import { LightningElement, api, wire, track } from 'lwc';
+import { LightningElement, api, track } from 'lwc';
 
 import getTransactions from '@salesforce/apex/Transactionservice.getTransactions';
-import { refreshApex } from '@salesforce/apex';
 
 export default class Transaction extends LightningElement {
 
     @api familyId;
 
     @track transactions = [];
-
-    wiredResult;
 
     columns = [
 
@@ -28,13 +25,11 @@ export default class Transaction extends LightningElement {
             fieldName: 'type'
         },
 
-
         {
             label: 'Paid',
             fieldName: 'paid',
             type: 'boolean'
         },
-
 
         {
             label: 'Payment Date',
@@ -42,25 +37,28 @@ export default class Transaction extends LightningElement {
         }
     ];
 
-    @wire(getTransactions, { familyId: '$familyId' })
-wiredTransactions(result) {
+    connectedCallback() {
 
-    this.wiredResult = result;
+        this.loadTransactions();
+    }
 
-    const { data, error } = result;
+    loadTransactions() {
 
-        if(data) {
+        getTransactions({ familyId: this.familyId })
 
-             let tempData = [];
+        .then(data => {
+
+            let tempData = [];
 
             data.forEach(member => {
 
-                // if transaction exists
                 if(member.transactions__r) {
 
                     member.transactions__r.forEach(txn => {
 
                         tempData.push({
+
+                            Id: txn.Id,
 
                             memberName: member.Name,
                             amount: txn.amount__c,
@@ -70,21 +68,33 @@ wiredTransactions(result) {
                         });
                     });
                 }
-
-                });
+            });
 
             this.transactions = tempData;
-        }
+        })
 
-        else if(error) {
+        .catch(error => {
 
             console.error(error);
-        }
+        });
     }
 
-    // AUTO REFRESH METHOD
+    handleBackMember() {
+
+    this.dispatchEvent(
+        new CustomEvent('backmember')
+    );
+}
+
+handleBackFamily() {
+
+    this.dispatchEvent(
+        new CustomEvent('backfamily')
+    );
+}
+
     refreshTransactionTable() {
 
-        refreshApex(this.wiredResult);
+        this.loadTransactions();
     }
 }

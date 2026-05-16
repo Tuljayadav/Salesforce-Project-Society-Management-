@@ -38,9 +38,15 @@ export default class MemberDashboard extends LightningElement {
         { label: 'Address', fieldName: 'address__c' },
         { label: 'Age', fieldName: 'age__c' },
         { label: 'Phone', fieldName: 'phone__c' },
-
-
-    {
+        {
+            label: 'Total Contribution',
+            fieldName: 'totalContribution',
+            type: 'currency',
+            cellAttributes: {
+                alignment: 'left'
+    }
+},
+{
         type: 'action',
         typeAttributes: {
             rowActions: [
@@ -60,15 +66,42 @@ export default class MemberDashboard extends LightningElement {
     //  family search
     @wire(getMembers, { familyId: '$familyId', searchKey: '$searchKey' })
     wiredMembers(result) {
-        this.wiredResult = result;
 
-        if (result.data) {
-            this.members = result.data;
-        } else if (result.error) {
-            console.error(result.error);
-        }
+    this.wiredResult = result;
+
+    if (result.data) {
+
+        let tempMembers = [];
+
+        result.data.forEach(member => {
+
+            let total = 0;
+
+            // child transactions
+            if(member.transactions__r) {
+
+                member.transactions__r.forEach(txn => {
+
+                    total += txn.amount__c;
+                });
+            }
+
+            tempMembers.push({
+
+                ...member,
+
+                totalContribution: total
+            });
+        });
+
+        this.members = tempMembers;
     }
 
+    else if (result.error) {
+
+        console.error(result.error);
+    }
+}
     //  Search
     handleSearch(e) {
         this.searchKey = e.target.value;
@@ -117,7 +150,7 @@ export default class MemberDashboard extends LightningElement {
 
 }
 
-openModal() {
+ openModal() {
         this.showModal = true;
     }
 
@@ -125,7 +158,7 @@ openModal() {
         this.showModal = false;
     }
 
-closeEditModal() {
+  closeEditModal() {
         this.showEditModal = false;
     }
 
@@ -135,7 +168,7 @@ closeEditModal() {
     closeTransactionModal() {
 
     this.showTransactionModal = false;
-}
+    }
  // Inputs
     handleName(e) { this.name = e.target.value; }
     handleAddress(e) { this.address = e.target.value; }
@@ -144,9 +177,9 @@ closeEditModal() {
     handlePaymentDate(event) {
 
     this.paymentDate = event.target.value;
-}
+   }
 
-handleTransactionType(event) {
+   handleTransactionType(event) {
 
     this.transactionType = event.target.value;
 
@@ -158,12 +191,14 @@ handleTransactionType(event) {
 
         this.amount = null;
     }
-}
+    }
 
-handleAmount(event) {
+    handleAmount(event) {
 
     this.amount = event.target.value;
-}
+    }
+
+   
 
 //  Save Member 
     handlesaveMember() {
@@ -172,14 +207,24 @@ handleAmount(event) {
             this.showToast('Error', 'All fields are required', 'error');
             return;
         }
-        console.log('DATA:', this.name, this.address, this.age, this.phone, this.familyId);
+        // PHONE VALIDATION
+    if(this.phone.length !== 10) {
+
+    this.showToast(
+        'Error',
+        'Phone number must be exactly 10 digits',
+        'error'
+    );
+
+    return;
+   }
         createMember({
             name: this.name,
             address: this.address,
             age: this.age,
             phone: this.phone,
             familyId: this.familyId 
-        })
+     })
         
         .then(() => {
             this.showToast('Success', 
@@ -200,6 +245,18 @@ handleAmount(event) {
         });
     }
     updateMemberHandler() {
+
+        // PHONE VALIDATION
+    if(this.phone.length !== 10) {
+
+        this.showToast(
+            'Error',
+            'Phone number must be exactly 10 digits',
+            'error'
+        );
+
+        return;
+    }
 
     updateMember({
 
@@ -233,11 +290,11 @@ handleAmount(event) {
             'error'
         );
     });
-}
+ }
 //Delete member
-confirmDelete() {
+     confirmDelete() {
 
-    deleteMember({
+     deleteMember({
         memberId: this.selectedMemberId
     })
 
@@ -264,20 +321,27 @@ confirmDelete() {
             'error'
         );
     });
-}
+   }
     
 // OPEN TRANSACTION PAGE
     openTransactions() {
 
-        this.showTransactions = true;
-    }
+    this.showTransactions = true;
+   }
 
-    handleBackTransaction() {
+   handleBackTransaction() {
 
     this.showTransactions = false;
-}
+  }
+    handleBackToFamily() {
 
-saveTransaction() {
+        const backEvent = new CustomEvent('backtofamily');
+
+        this.dispatchEvent(backEvent);
+    }
+
+
+   saveTransaction() {
 
     if(this.transactionType === 'Contribution' && this.amount < 500) {
         
@@ -297,9 +361,8 @@ saveTransaction() {
         paymentDate: this.paymentDate,
         typeValue: this.transactionType
     })
-    
 
-    .then(() => {
+    .then(async() => {
 
         this.showToast(
             'Success',
@@ -307,17 +370,26 @@ saveTransaction() {
             'success'
         );
 
+        // CLOSE MODAL
         this.showTransactionModal = false;
 
-// transaction component refresh
-        this.showTransactions = false;
+        // RESET FIELDS
+        this.paymentDate = null;
+        this.transactionType = null;
+        this.amount = null;
 
-    setTimeout(() => {
+        // MEMBER TABLE REFRESH
+        await refreshApex(this.wiredResult);
 
-        this.showTransactions = true;
-
-    }, 300);
         
+     // TRANSACTION TABLE REFRESH
+      const transactionCmp = this.template.querySelector('c-transaction');
+
+     if(transactionCmp) {
+
+        await transactionCmp.refreshTransactionTable();
+    }
+
     })
 
     .catch(error => {
@@ -326,12 +398,11 @@ saveTransaction() {
 
         this.showToast(
             'Payment Status',
-        error.body.message,
-        'warning'
+            error.body.message,
+            'warning'
         );
     });
-}
-
+   }
 
     //  Toast
     showToast(title, message, variant) {

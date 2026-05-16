@@ -5,7 +5,16 @@ public with sharing class Memberservice {
         if(String.isBlank(searchKey)) searchKey = '';
 
         return [
-            SELECT Id, Name, Address__c, Age__c, Phone__c
+            SELECT Id, Name, 
+            Address__c, 
+            Age__c, 
+            Phone__c,
+             (
+                SELECT Id, Amount__c
+                FROM Transactions__r
+                WHERE Type__c = 'Contribution'
+        )
+
             FROM Member__c
             WHERE  Family__c = :familyId AND Name LIKE :('%' + searchKey + '%')
             ORDER BY Name

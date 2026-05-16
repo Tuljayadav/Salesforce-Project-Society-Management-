@@ -4,12 +4,19 @@
     <template if:false={showTransactions}>
 
         <template if:true={familyId}>
-
+            
             <lightning-card title="Member Dashboard">
-
+                
                 <!-- TOP BUTTONS -->
-                <div class="slds-grid slds-grid_align-end slds-m-bottom_small">
+                <div class="slds-grid slds-grid_align-spread slds-m-bottom_small">
+                   
+                    <lightning-button 
+                        label="⬅ Back to Family"
+                        onclick={handleBackToFamily}>
+                    </lightning-button>
+
                     <!-- VIEW TRANSACTION -->
+                     <div>
                     <lightning-button
                         label="View Transactions"
                         icon-name="utility:money"
@@ -26,6 +33,7 @@
                     </lightning-button>
 
                 </div>
+            </div>
 
                 <!-- SEARCH -->
                 <lightning-input
@@ -47,17 +55,16 @@
         </template>
 
     </template>
+    
+
 
     <!-- TRANSACTION PAGE -->
     <template if:true={showTransactions}>
-
-        <lightning-button
-            label="⬅ Back to member"
-            onclick={handleBackTransaction}>
-        </lightning-button>
-
+    
         <c-transaction
-            family-id={familyId}>
+            family-id={familyId}
+            onbackmember={handleBackTransaction}
+    onbackfamily={handleBackToFamily}>
         </c-transaction>
 
     </template>
