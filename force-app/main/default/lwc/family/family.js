@@ -30,6 +30,8 @@ export default class FamilyDashboard extends LightningElement {
     showDeleteModal = false;
     deleteRecordId;
 
+    selectedRows = [];
+
     wiredResult;
 
     //  COLUMNS (View button + Dropdown BOTH)
@@ -200,15 +202,73 @@ export default class FamilyDashboard extends LightningElement {
     handleHeadChange(event) {
 
     this.selectedHeadId = event.detail.value;
+    }
+
+    handleRowSelection(event) {
+
+    this.selectedRows = event.detail.selectedRows;
 }
     
+handleBulkDelete() {
 
+    if(this.selectedRows.length === 0) {
+
+        this.showToast(
+            'Error',
+            'Please select at least one family',
+            'error'
+        );
+
+        return;
+    }
+
+    const ids = this.selectedRows.map(row => row.Id);
+
+    Promise.all(
+        ids.map(id => deleteFamily({ familyId: id }))
+    )
+
+    .then(() => {
+
+        this.showToast(
+            'Success',
+            'Selected families deleted',
+            'success'
+        );
+
+        this.selectedRows = [];
+
+        return refreshApex(this.wiredResult);
+    })
+
+    .catch(error => {
+
+        console.error(error);
+
+        this.showToast(
+            'Error',
+            'Error deleting families',
+            'error'
+        );
+    });
+}
     //  CREATE FAMILY
     saveFamily() {
         if (!this.familyName) {
             this.showToast('Error', 'Family Name is required', 'error');
             return;
         }
+
+        if (!/^[0-9]{10}$/.test(this.phone)) {
+
+        this.showToast(
+            'Error',
+            'Phone number must contain exactly 10 digits',
+            'error'
+        );
+
+        return;
+    }
 
         createFamilyWithHead({
 

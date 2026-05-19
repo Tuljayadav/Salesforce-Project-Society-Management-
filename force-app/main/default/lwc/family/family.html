@@ -6,16 +6,28 @@
         <lightning-card title="Family Dashboard">
             
          <!-- ADD BUTTON (RIGHT SIDE) -->
-        <div class="slds-col slds-size_1-of-1 slds-text-align_right">
-                <lightning-button 
-                    label="Add Family"
-                    icon-name="utility:user" 
-                    variant="brand"
-                    onclick={openModal}>
-                </lightning-button>
+    
+    <div class="slds-grid slds-grid_align-end slds-wrap slds-p-horizontal_small slds-m-bottom_small">
+        <!-- DELETE SELECTED -->
+        <template if:true={selectedRows.length}>
+            <lightning-button
+                label="Delete Selected"
+                icon-name="utility:delete"
+                variant="destructive"
+                class="slds-m-right_small"
+                onclick={handleBulkDelete}>
+            </lightning-button>
+          </template>
 
-            </div>
+    <!-- ADD FAMILY -->
+    <lightning-button 
+        label="Add Family"
+        icon-name="utility:user" 
+        variant="brand"
+        onclick={openModal}>
+    </lightning-button>
 
+    </div>
             <div class="slds-col slds-size_1-of-1 slds-m-bottom_small">
 
                 <!-- SEARCH -->
@@ -31,7 +43,8 @@
                 key-field="Id"
                 data={families}
                 columns={columns}
-                onrowaction={handleRowAction}>
+                onrowaction={handleRowAction}
+                onrowselection={handleRowSelection}>
             </lightning-datatable>
 
         </lightning-card>
@@ -86,7 +99,11 @@
                     </lightning-input>
 
                     <lightning-input
+                        type="tel"
                         label="Phone"
+                        maxlength="10"
+                        pattern="[0-9]{10}"
+                        message-when-pattern-mismatch="Enter valid 10 digit phone number"
                         required
                         onchange={handlePhone}>
                     </lightning-input>
@@ -143,7 +160,7 @@
         <section class="slds-modal slds-fade-in-open">
             <div class="slds-modal__container">
 
-                <header class="slds-modal__header">
+             p   <header class="slds-modal__header">
                     <h2>Confirm Delete</h2>
                 </header>
 

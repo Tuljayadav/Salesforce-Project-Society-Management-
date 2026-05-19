@@ -9,18 +9,33 @@
                 
                 <!-- TOP BUTTONS -->
                 <div class="slds-grid slds-grid_align-spread slds-m-bottom_small">
-                   
+                   <div>
                     <lightning-button 
                         label="⬅ Back to Family"
                         onclick={handleBackToFamily}>
                     </lightning-button>
+               </div>
+
+                 <!-- DELETE SELECTED -->
+                  <div class="slds-grid slds-gutters_small">
+
+                    <template if:true={selectedRows.length}>
+                        <lightning-button
+                            label="Delete Selected"
+                            icon-name="utility:delete"
+                            variant="destructive"
+                            class="slds-m-right_small"
+                            onclick={handleBulkDelete}>
+                        </lightning-button>
+                    </template>
 
                     <!-- VIEW TRANSACTION -->
-                     <div>
+                     
                     <lightning-button
                         label="View Transactions"
                         icon-name="utility:money"
                         variant="brand"
+                        class="slds-m-right_small"
                         onclick={openTransactions}>
                     </lightning-button>
 
@@ -34,6 +49,7 @@
 
                 </div>
             </div>
+            
 
                 <!-- SEARCH -->
                 <lightning-input
@@ -47,7 +63,8 @@
                     key-field="Id"
                     data={members}
                     columns={columns}
-                    onrowaction={handleRowAction}>
+                    onrowaction={handleRowAction}
+                    onrowselection={handleRowSelection}>
                 </lightning-datatable>
 
             </lightning-card>
@@ -101,8 +118,12 @@
                         onchange={handleAge}>
                     </lightning-input>
 
-                    <lightning-input 
+                    <lightning-input
+                        type="tel" 
                         label="Phone"
+                         maxlength="10"
+                         pattern="[0-9]{10}"
+                         message-when-pattern-mismatch="Enter valid 10 digit phone number"
                         required
                         onchange={handlePhone}>
                     </lightning-input>
