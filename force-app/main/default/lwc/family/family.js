@@ -28,6 +28,7 @@ export default class FamilyDashboard extends LightningElement {
     showMembers = false;
 
     showDeleteModal = false;
+    showBulkDeleteModal = false;
     deleteRecordId;
 
     selectedRows = [];
@@ -112,43 +113,43 @@ export default class FamilyDashboard extends LightningElement {
 
         else if (actionName === 'edit') {
 
-    this.selectedFamilyId = row.Id;
+        this.selectedFamilyId = row.Id;
 
-    this.familyName = row.Name;
+        this.familyName = row.Name;
 
-    this.selectedHeadId = row.Head_of_Family__c;
+        this.selectedHeadId = row.Head_of_Family__c;
 
     //  Load members of same family
-    getFamilyMembers({ familyId: row.Id })
+        getFamilyMembers({ familyId: row.Id })
 
-    .then(result => {
+        .then(result => {
 
-        this.memberOptions = result.map(member => {
+            this.memberOptions = result.map(member => {
 
-            return {
-                label: member.Name,
-                value: member.Id
-            };
+                return {
+                    label: member.Name,
+                    value: member.Id
+                };
+            });
+
+            // modal AFTER loading options
+            this.showEditModal = true;
+        })
+
+        .catch(error => {
+
+            console.error(error);
+
+            this.memberOptions = [];
+
+            this.showToast(
+                'Error',
+                'Error loading family members',
+                'error'
+            );
         });
-
-        // modal AFTER loading options
-        this.showEditModal = true;
-    })
-
-    .catch(error => {
-
-        console.error(error);
-
-        this.memberOptions = [];
-
-        this.showToast(
-            'Error',
-            'Error loading family members',
-            'error'
-        );
-    });
-}
     }
+}
 
     //  DELETE CONFIRM
     confirmDelete() {
@@ -207,9 +208,9 @@ export default class FamilyDashboard extends LightningElement {
     handleRowSelection(event) {
 
     this.selectedRows = event.detail.selectedRows;
-}
+    }
     
-handleBulkDelete() {
+   handleBulkDelete() {
 
     if(this.selectedRows.length === 0) {
 
@@ -221,6 +222,18 @@ handleBulkDelete() {
 
         return;
     }
+
+    // OPEN CONFIRMATION MODAL
+    this.showBulkDeleteModal = true;
+}
+
+
+closeBulkDeleteModal() {
+
+    this.showBulkDeleteModal = false;
+}
+
+confirmBulkDelete() {
 
     const ids = this.selectedRows.map(row => row.Id);
 
@@ -237,6 +250,8 @@ handleBulkDelete() {
         );
 
         this.selectedRows = [];
+
+        this.showBulkDeleteModal = false;
 
         return refreshApex(this.wiredResult);
     })
@@ -272,12 +287,12 @@ handleBulkDelete() {
 
         createFamilyWithHead({
 
-    familyName: this.familyName,
-    memberName: this.memberName,
-    address: this.address,
-    age: this.age,
-    phone: this.phone
-})
+            familyName: this.familyName,
+            memberName: this.memberName,
+            address: this.address,
+            age: this.age,
+            phone: this.phone
+        })
         .then(() => {
             this.showToast('Success', 'Family Created', 'success');
             this.showModal = false;

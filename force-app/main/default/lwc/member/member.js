@@ -3,7 +3,10 @@ import getMembers from '@salesforce/apex/MemberService.getMembers';
 import createMember from '@salesforce/apex/MemberService.createMember';
 import updateMember from '@salesforce/apex/MemberService.updateMember';
 import deleteMember from '@salesforce/apex/MemberService.deleteMember';
+import ApplyLoan from '@salesforce/apex/LoanService.ApplyLoan';
 import createTransaction from '@salesforce/apex/TransactionService.createTransaction';
+import getEMIAmount from '@salesforce/apex/LoanService.getEMIAmount';
+import updateLoanEMI from '@salesforce/apex/LoanService.updateLoanEMI';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import { refreshApex } from '@salesforce/apex';
 
@@ -19,7 +22,23 @@ export default class MemberDashboard extends LightningElement {
     showEditModal = false;
     showDeleteModal = false;
     showTransactions = false;
+    showLoanModal = false;
     showTransactionModal = false;
+    showLoans = false;
+    loanAmount;
+    loanDate;
+
+    paperFee = 200;
+
+    get totalAmount() {
+
+    return Number(this.loanAmount || 0) + this.paperFee;
+  }
+
+    get monthlyEMI() {
+
+    return (this.totalAmount / 24).toFixed(2);
+  }
 
     name;
     address;
@@ -31,6 +50,7 @@ export default class MemberDashboard extends LightningElement {
     amount = null;   
     selectedMemberId;
     selectedRows = [];
+    
 
     wiredResult;
 
@@ -47,6 +67,17 @@ export default class MemberDashboard extends LightningElement {
                 alignment: 'left'
     }
 },
+
+{
+    label: 'Apply Loan',
+    type: 'button',
+    typeAttributes: {
+        label: 'Apply Loan',
+        name: 'Apply_loan',
+        variant: 'brand',
+        disabled: { fieldName: 'loanDisabled' }
+    }
+},
 {
         type: 'action',
         typeAttributes: {
@@ -56,13 +87,13 @@ export default class MemberDashboard extends LightningElement {
                 { label: 'Add Transaction', name: 'add_transaction' }
             ]
         }
-    }
- ];
+    },
+];
 
     typeoptions=[
         {label:'Contribution',value:'Contribution'},
         {label:'EMI',value:'EMI'}
-    ];
+ ];
 
     //  family search
     @wire(getMembers, { familyId: '$familyId', searchKey: '$searchKey' })
@@ -91,7 +122,9 @@ export default class MemberDashboard extends LightningElement {
 
                 ...member,
 
-                totalContribution: total
+                totalContribution: total,
+                isEligible: total >= 6000,
+                loanDisabled: total < 6000
             });
         });
 
@@ -108,8 +141,7 @@ export default class MemberDashboard extends LightningElement {
         this.searchKey = e.target.value;
          
     }
-
-    handleRowAction(event) {
+     handleRowAction(event) {
 
     const actionName = event.detail.action.name;
     const row = event.detail.row;
@@ -149,17 +181,42 @@ export default class MemberDashboard extends LightningElement {
     this.showTransactionModal = true;
 }
 
+// CREATE LOAN
+else if(actionName === 'Apply_loan') {
+
+    // ELIGIBILITY CHECK
+    if(row.totalContribution < 6000) {
+
+        this.showToast(
+            'Error',
+            'Member is not eligible for loan',
+            'error'
+        );
+
+        return;
+    }
+
+    this.selectedMemberId = row.Id;
+
+    this.name = row.Name;
+
+    this.showLoanModal = true;
+  }
 }
 
  openModal() {
         this.showModal = true;
+    }
+     openLoans() {
+
+    this.showLoans = true;
     }
 
     closeModal() {
         this.showModal = false;
     }
 
-  closeEditModal() {
+    closeEditModal() {
         this.showEditModal = false;
     }
 
@@ -170,6 +227,8 @@ export default class MemberDashboard extends LightningElement {
 
     this.showTransactionModal = false;
     }
+
+    
  // Inputs
     handleName(e) { this.name = e.target.value; }
     handleAddress(e) { this.address = e.target.value; }
@@ -180,19 +239,46 @@ export default class MemberDashboard extends LightningElement {
     this.paymentDate = event.target.value;
    }
 
-   handleTransactionType(event) {
+   async handleTransactionType(event) {
 
     this.transactionType = event.target.value;
 
-    // Contribution selected
+    // Contribution
     if(this.transactionType === 'Contribution') {
+
         this.amount = 500;
     }
+
+    // EMI
+    else if(this.transactionType === 'EMI') {
+
+        try {
+
+            const emiAmount = await getEMIAmount({
+
+                memberId: this.selectedMemberId
+            });
+
+            this.amount = emiAmount;
+        }
+
+        catch(error) {
+
+            this.amount = null;
+
+            this.showToast(
+                'Error',
+                error.body.message,
+                'error'
+            );
+       }
+    }
+
     else {
 
         this.amount = null;
     }
-    }
+}
 
     handleAmount(event) {
 
@@ -202,16 +288,66 @@ export default class MemberDashboard extends LightningElement {
     handleRowSelection(event) {
 
     this.selectedRows = event.detail.selectedRows;
-}
+    }
 
-handleBulkDelete() {
+    handleLoanAmount(event) {
 
-    if(this.selectedRows.length === 0) {
+        this.loanAmount = event.target.value;
+    }
+
+    handleLoanDate(event) {
+
+        this.loanDate = event.target.value;
+    }
+
+    closeLoanModal() {
+
+        this.showLoanModal = false;
+    }
+
+    //Apply loan
+    saveLoan() {
+
+    ApplyLoan({
+
+        memberId: this.selectedMemberId,
+        loanAmount: this.loanAmount,
+        loanDate: this.loanDate
+    })
+
+    .then(() => {
+
+        this.showToast(
+            'Success',
+            'Loan Applied Successfully',
+            'success'
+        );
+
+        this.showLoanModal = false;
+
+        this.loanAmount = null;
+
+        this.loanDate = null;
+    })
+
+    .catch(error => {
 
         this.showToast(
             'Error',
-            'Please select at least one family',
+            error.body.message,
             'error'
+        );
+    });
+}
+
+    handleBulkDelete() {
+
+        if(this.selectedRows.length === 0) {
+
+             this.showToast(
+                'Error',
+                'Please select at least one family',
+                'error'
         );
 
         return;
@@ -247,7 +383,6 @@ handleBulkDelete() {
         );
     });
 }
-   
 
 //  Save Member 
     handlesaveMember() {
@@ -257,12 +392,12 @@ handleBulkDelete() {
             return;
         }
         // PHONE VALIDATION
-    if(this.phone.length !== 10) {
+            if(this.phone.length !== 10) {
 
-    this.showToast(
-        'Error',
-        'Phone number must be exactly 10 digits',
-        'error'
+            this.showToast(
+                'Error',
+                'Phone number must be exactly 10 digits',
+                'error'
     );
 
     return;
@@ -305,6 +440,7 @@ handleBulkDelete() {
             this.showToast('Error', 'Error creating member', 'error');
         });
     }
+
     updateMemberHandler() {
 
         // PHONE VALIDATION
@@ -401,8 +537,12 @@ handleBulkDelete() {
         this.dispatchEvent(backEvent);
     }
 
+    handleBackLoan() {
 
-   saveTransaction() {
+    this.showLoans = false;
+}
+   
+saveTransaction() {
 
     if(this.transactionType === 'Contribution' && this.amount < 500) {
         
@@ -415,6 +555,17 @@ handleBulkDelete() {
         return;
     }
 
+    if(this.transactionType === 'EMI' && !this.amount) {
+
+    this.showToast(
+        'Error',
+        'No active loan found',
+        'error'
+    );
+
+    return;
+}
+
     createTransaction({
 
         memberId: this.selectedMemberId,
@@ -425,6 +576,27 @@ handleBulkDelete() {
 
     .then(async() => {
 
+ // EMI UPDATE
+        if(this.transactionType === 'EMI') {
+
+            await updateLoanEMI({
+
+                memberId: this.selectedMemberId
+            });
+    
+
+     const loanCmp =
+        this.template.querySelector('c-loan');
+
+    if(loanCmp) {
+
+        setTimeout(async() => {
+
+        await loanCmp.refreshLoanTable();
+
+      }, 300);
+    }
+ }
         this.showToast(
             'Success',
             'Transaction Added',
@@ -442,15 +614,16 @@ handleBulkDelete() {
         // MEMBER TABLE REFRESH
         await refreshApex(this.wiredResult);
 
+        // TRANSACTION TABLE REFRESH
+        const transactionCmp =
+            this.template.querySelector('c-transaction');
+
+        if(transactionCmp) {
+
+            await transactionCmp.refreshTransactionTable();
+        }
+
         
-     // TRANSACTION TABLE REFRESH
-      const transactionCmp = this.template.querySelector('c-transaction');
-
-     if(transactionCmp) {
-
-        await transactionCmp.refreshTransactionTable();
-    }
-
     })
 
     .catch(error => {
@@ -463,7 +636,7 @@ handleBulkDelete() {
             'warning'
         );
     });
-   }
+}
 
     //  Toast
     showToast(title, message, variant) {

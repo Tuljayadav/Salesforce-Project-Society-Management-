@@ -2,6 +2,7 @@
 
     <!-- MEMBER DASHBOARD -->
     <template if:false={showTransactions}>
+        <template if:false={showLoans}>
 
         <template if:true={familyId}>
             
@@ -17,7 +18,7 @@
                </div>
 
                  <!-- DELETE SELECTED -->
-                  <div class="slds-grid slds-gutters_small">
+                  <div class="slds-grid slds-grid_align-end slds-m-bottom_small">
 
                     <template if:true={selectedRows.length}>
                         <lightning-button
@@ -37,6 +38,14 @@
                         variant="brand"
                         class="slds-m-right_small"
                         onclick={openTransactions}>
+                    </lightning-button>
+
+                    <lightning-button
+                        label="Loan Center"
+                        icon-name="utility:moneybag"
+                        class="slds-m-right_small"
+                        variant="success"
+                        onclick={openLoans}>
                     </lightning-button>
 
                     <!-- ADD MEMBER -->
@@ -72,9 +81,8 @@
         </template>
 
     </template>
+    </template>
     
-
-
     <!-- TRANSACTION PAGE -->
     <template if:true={showTransactions}>
     
@@ -85,6 +93,17 @@
         </c-transaction>
 
     </template>
+
+    <!-- LOAN PAGE -->
+  <template if:true={showLoans}>
+
+    <c-loan
+    family-id={familyId}
+        member-name={name}
+        onbackmember={handleBackLoan}>
+    </c-loan>
+
+  </template>
 
     <!-- ADD MEMBER MODAL -->
     <template if:true={showModal}>
@@ -134,6 +153,7 @@
 
                     <lightning-button
                         label="Cancel"
+                        class="slds-m-right_small"
                         onclick={closeModal}>
                     </lightning-button>
 
@@ -197,6 +217,7 @@
 
                     <lightning-button
                         label="Cancel"
+                        class="slds-m-right_small"
                         onclick={closeEditModal}>
                     </lightning-button>
 
@@ -239,6 +260,7 @@
 
                     <lightning-button
                         label="Cancel"
+                        class="slds-m-right_small"
                         onclick={closeDeleteModal}>
                     </lightning-button>
 
@@ -257,6 +279,82 @@
         <div class="slds-backdrop slds-backdrop_open"></div>
 
     </template>
+
+    <!-- CREATE LOAN MODAL -->
+  <template if:true={showLoanModal}>
+
+     <section class="slds-modal slds-fade-in-open">
+
+        <div class="slds-modal__container">
+
+            <header class="slds-modal__header">
+                <h2>Apply Loan</h2>
+            </header>
+
+            <div class="slds-modal__content slds-p-around_medium">
+
+                <lightning-input
+                    label="Member Name"
+                    value={name}
+                    disabled>
+                </lightning-input>
+
+                <lightning-input
+                    type="number"
+                    label="Loan Amount"
+                    onchange={handleLoanAmount}>
+                </lightning-input>
+
+                <lightning-input
+                    type="date"
+                    label="Loan Date"
+                    onchange={handleLoanDate}>
+                </lightning-input>
+
+                <!-- PAPER FEE -->
+            <div class="slds-m-top_medium">
+                <p><strong>Paper Fee:</strong> ₹{paperFee}</p>
+            </div>
+
+            <!-- EMI DURATION -->
+            <div class="slds-m-top_small">
+                <p><strong>Duration:</strong> 24 Months</p>
+            </div>
+
+            <!-- MONTHLY EMI -->
+            <div class="slds-m-top_small">
+                <p><strong>Monthly EMI:</strong> ₹{monthlyEMI}</p>
+            </div>
+
+            <!-- TOTAL AMOUNT -->
+            <div class="slds-m-top_small">
+                <p><strong>Total Amount:</strong> ₹{totalAmount}</p>
+            </div>
+            </div>
+
+            <footer class="slds-modal__footer">
+
+                <lightning-button
+                    label="Cancel"
+                    class="slds-m-right_small"
+                    onclick={closeLoanModal}>
+                </lightning-button>
+
+                <lightning-button
+                    label="Apply Loan"
+                    variant="brand"
+                    onclick={saveLoan}>
+                </lightning-button>
+
+            </footer>
+
+        </div>
+
+    </section>
+
+    <div class="slds-backdrop slds-backdrop_open"></div>
+
+</template>
     <!-- ADD TRANSACTION MODAL -->
 <template if:true={showTransactionModal}>
 
@@ -306,11 +404,12 @@
 
                 <lightning-button
                     label="Cancel"
+                    class="slds-m-right_small"
                     onclick={closeTransactionModal}>
                 </lightning-button>
 
                 <lightning-button
-                    label="Save"
+                    label="Pay"
                     variant="brand"
                     onclick={saveTransaction}>
                 </lightning-button>

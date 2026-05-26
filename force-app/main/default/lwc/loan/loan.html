@@ -1,3 +1,29 @@
 <template>
-    
+
+    <lightning-card title="Loan Dashboard">
+
+        <div class="slds-p-around_small">
+
+            <lightning-button
+                label="⬅ Back to Member"
+                onclick={handleBack}>
+            </lightning-button>
+
+        </div>
+
+        <div class="slds-p-around_medium">
+
+            <lightning-datatable
+
+                key-field="Id"
+
+                data={loans}
+
+                columns={columns}>
+            </lightning-datatable>
+
+        </div>
+
+    </lightning-card>
+
 </template>

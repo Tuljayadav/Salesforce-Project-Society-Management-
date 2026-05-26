@@ -59,6 +59,7 @@ public with sharing class Familyservice {
         ORDER BY Name
     ];
 }
+
     @AuraEnabled
     public static void deleteFamily(Id familyId) {
 
@@ -66,6 +67,7 @@ public with sharing class Familyservice {
         delete [SELECT Id FROM Family__c WHERE Id = :familyId LIMIT 1];
     }
 }
+
    @AuraEnabled
     public static void updateFamily(Id familyId, String familyName,Id headId) {
         Family__c fam = new Family__c(

@@ -86,7 +86,7 @@ export default class Transaction extends LightningElement {
     );
 }
 
-handleBackFamily() {
+   handleBackFamily() {
 
     this.dispatchEvent(
         new CustomEvent('backfamily')
