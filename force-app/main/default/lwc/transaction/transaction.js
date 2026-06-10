@@ -5,8 +5,38 @@ import getTransactions from '@salesforce/apex/Transactionservice.getTransactions
 export default class Transaction extends LightningElement {
 
     @api familyId;
+     @track transactions = [];
+     @track dataLoaded = false;
 
-    @track transactions = [];
+     @api
+refreshChartData() {
+
+    const chartCmp =
+        this.template.querySelector('.chartCmp');
+
+    if(chartCmp) {
+
+        chartCmp.refreshChart();
+    }
+}
+
+@api
+refreshTransactionTable() {
+
+    console.log('Transaction Refresh Called');
+
+    this.loadTransactions();
+
+    const chartCmp =
+        this.template.querySelector('.chartCmp');
+
+    if(chartCmp){
+
+        console.log('Chart Refresh Called');
+
+        chartCmp.refreshChart();
+    }
+}
 
     columns = [
 
@@ -20,9 +50,9 @@ export default class Transaction extends LightningElement {
             fieldName: 'amount'
         },
 
-        {
-            label: 'Type',
-            fieldName: 'type'
+        {       
+             label: 'Type',
+             fieldName: 'type'
         },
 
         {
@@ -55,6 +85,8 @@ export default class Transaction extends LightningElement {
                 if(member.transactions__r) {
 
                     member.transactions__r.forEach(txn => {
+                         console.log('Transaction Record', txn);
+
 
                         tempData.push({
 
@@ -62,7 +94,11 @@ export default class Transaction extends LightningElement {
 
                             memberName: member.Name,
                             amount: txn.amount__c,
-                            type: txn.type__c,
+                            type:
+                            txn.type__c === 'contribution'
+                            ? '🔵 Contribution'
+                            : '🟢 EMI',
+                            
                             paid: txn.paid__c,
                             paymentDate: txn.payment_date__c
                         });
@@ -71,11 +107,13 @@ export default class Transaction extends LightningElement {
             });
 
             this.transactions = tempData;
+            this.dataLoaded = true;
         })
 
         .catch(error => {
 
             console.error(error);
+            this.dataLoaded = true;
         });
     }
 
@@ -92,9 +130,4 @@ export default class Transaction extends LightningElement {
         new CustomEvent('backfamily')
     );
 }
-
-    refreshTransactionTable() {
-
-        this.loadTransactions();
-    }
 }

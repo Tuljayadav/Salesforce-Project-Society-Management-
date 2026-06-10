@@ -14,8 +14,11 @@ import { refreshApex } from '@salesforce/apex';
 export default class MemberDashboard extends LightningElement {
 
     @api familyId; 
+    @track isLoading = false;
 
     @track members = [];
+
+    @track dataLoaded = false;
     searchKey = '';
 
     showModal = false;
@@ -39,6 +42,16 @@ export default class MemberDashboard extends LightningElement {
 
     return (this.totalAmount / 24).toFixed(2);
   }
+
+  get totalMembers(){
+    return this.members.length;
+}
+
+    get eligibleMembers(){
+        return this.members.filter(
+            member => member.totalContribution >= 6000
+        ).length;
+    }
 
     name;
     address;
@@ -91,7 +104,7 @@ export default class MemberDashboard extends LightningElement {
 ];
 
     typeoptions=[
-        {label:'Contribution',value:'Contribution'},
+        {label:'Contribution',value:'contribution'},
         {label:'EMI',value:'EMI'}
  ];
 
@@ -129,11 +142,13 @@ export default class MemberDashboard extends LightningElement {
         });
 
         this.members = tempMembers;
+        this.dataLoaded = true;
     }
 
     else if (result.error) {
 
         console.error(result.error);
+         this.dataLoaded = true;
     }
 }
     //  Search
@@ -200,6 +215,9 @@ else if(actionName === 'Apply_loan') {
 
     this.name = row.Name;
 
+
+    this.loanDate =
+        new Date().toISOString().split('T')[0];
     this.showLoanModal = true;
   }
 }
@@ -240,13 +258,14 @@ else if(actionName === 'Apply_loan') {
    }
 
    async handleTransactionType(event) {
-
-    this.transactionType = event.target.value;
+        this.transactionType = event.target.value;
+        console.log('Selected Type:', this.transactionType);
 
     // Contribution
-    if(this.transactionType === 'Contribution') {
+    if(this.transactionType === 'contribution') {
 
         this.amount = 500;
+        console.log('Amount:', this.amount);
     }
 
     // EMI
@@ -322,15 +341,20 @@ else if(actionName === 'Apply_loan') {
             'Loan Applied Successfully',
             'success'
         );
+        
 
         this.showLoanModal = false;
 
         this.loanAmount = null;
 
         this.loanDate = null;
-    })
 
-    .catch(error => {
+        this.dispatchEvent(
+        new CustomEvent('refreshdashboard')
+    );
+    
+    })
+     .catch(error => {
 
         this.showToast(
             'Error',
@@ -387,12 +411,50 @@ else if(actionName === 'Apply_loan') {
 //  Save Member 
     handlesaveMember() {
 
-        if (!this.name || !this.address || !this.age || !this.phone) {
+        if (!this.name ) {
             this.showToast('Error', 'All fields are required', 'error');
             return;
         }
+
+        const memberNameRegex = /^[A-Za-z ]+$/;
+
+if(!memberNameRegex.test(this.name)) {
+
+    this.showToast(
+        'Error',
+        'Member Name can contain only letters and spaces',
+        'error'
+    );
+
+    return;
+}
+
+const addressRegex = /[A-Za-z]/;
+
+if(!addressRegex.test(this.address)) {
+
+    this.showToast(
+        'Error',
+        'Address must contain at least one alphabet',
+        'error'
+    );
+
+    return;
+}
+
+if(this.age && (this.age < 1 || this.age > 120)) {
+
+    this.showToast(
+        'Error',
+        'Please enter a valid age between 1 and 120',
+        'error'
+    );
+
+    return;
+}
+
         // PHONE VALIDATION
-            if(this.phone.length !== 10) {
+            if(this.phone && this.phone.length !== 10) {
 
             this.showToast(
                 'Error',
@@ -402,19 +464,7 @@ else if(actionName === 'Apply_loan') {
 
     return;
    }
-
-   // PHONE VALIDATION
-    if (!/^[0-9]{10}$/.test(this.phone)) {
-
-        this.showToast(
-            'Error',
-            'Phone number must contain exactly 10 digits',
-            'error'
-        );
-
-        return;
-    }
-        createMember({
+     createMember({
             name: this.name,
             address: this.address,
             age: this.age,
@@ -427,12 +477,15 @@ else if(actionName === 'Apply_loan') {
                 'Member Created',
                  'success');
 
+
             this.showModal = false;
             this.name = '';
             this.address = '';
             this.age = null;
             this.phone = '';
-
+            this.dispatchEvent(
+    new CustomEvent('refreshdashboard')
+);
             return refreshApex(this.wiredResult);
         })
         .catch(error => {
@@ -502,6 +555,9 @@ else if(actionName === 'Apply_loan') {
             'Member Deleted',
             'success'
         );
+        this.dispatchEvent(
+    new CustomEvent('refreshdashboard')
+);
 
         this.showDeleteModal = false;
 
@@ -543,8 +599,9 @@ else if(actionName === 'Apply_loan') {
 }
    
 saveTransaction() {
+   
 
-    if(this.transactionType === 'Contribution' && this.amount < 500) {
+    if(this.transactionType === 'contribution' && this.amount < 500) {
         
         this.showToast(
             'Error',
@@ -565,7 +622,8 @@ saveTransaction() {
 
     return;
 }
-
+    this.isLoading = true;
+    console.log('Spinner ON');
     createTransaction({
 
         memberId: this.selectedMemberId,
@@ -575,6 +633,10 @@ saveTransaction() {
     })
 
     .then(async() => {
+
+        await new Promise(resolve =>
+        setTimeout(resolve, 1000)
+    );
 
  // EMI UPDATE
         if(this.transactionType === 'EMI') {
@@ -603,8 +665,23 @@ saveTransaction() {
             'success'
         );
 
+
+        this.dispatchEvent(
+    new CustomEvent('refreshdashboard')
+);
+
+    const transactionComponent =
+    this.template.querySelector('c-transaction');
+
+if(transactionComponent){
+    transactionComponent.refreshTransactionTable();
+}
         // CLOSE MODAL
         this.showTransactionModal = false;
+console.log('Spinner OFF');
+        // SPINNER OFF
+         this.isLoading = false;
+
 
         // RESET FIELDS
         this.paymentDate = null;
@@ -627,6 +704,8 @@ saveTransaction() {
     })
 
     .catch(error => {
+
+        this.isLoading = false;
 
         console.error(error);
 

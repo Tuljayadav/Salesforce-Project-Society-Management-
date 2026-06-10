@@ -1,0 +1,27 @@
+.chart-card {
+
+    border-radius: 12px;
+
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.summary-card {
+
+    text-align: center;
+
+    background: #f4f6ff;
+
+    padding: 15px;
+
+    border-radius: 12px;
+
+    margin: 15px;
+}
+
+.summary-card h2 {
+
+    color: #4F46E5;
+
+    font-size: 28px;
+
+    font-weight: bold;
+}

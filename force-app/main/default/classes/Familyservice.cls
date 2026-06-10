@@ -32,6 +32,7 @@ public with sharing class Familyservice {
     insert fam;
 
     //  Create Member
+    if(String.isNotBlank(memberName)) {
     Member__c mem = new Member__c();
 
     mem.Name = memberName;
@@ -48,6 +49,7 @@ public with sharing class Familyservice {
 
     update fam;
 }
+    }
 
     @AuraEnabled(cacheable=true)
     public static List<Member__c> getFamilyMembers(Id familyId) {
@@ -77,4 +79,34 @@ public with sharing class Familyservice {
         );
         update fam;
     }
+    @AuraEnabled(cacheable=true)
+    public static Map<String,Integer> getDashboardStats(){
+
+    Map<String,Integer> stats = new Map<String,Integer>();
+
+    stats.put(
+    'totalFamilies',
+    [SELECT Count() FROM Family__c]
+    );
+
+    stats.put(
+        'totalMembers',
+        [SELECT Count() FROM member__c]
+    );
+
+    stats.put(
+        'activeLoans',
+        [SELECT Count()
+         FROM loan__c
+         WHERE Status__c = 'Active']
+    );
+
+    stats.put(
+        'totalTransactions',
+        [SELECT Count()
+         FROM transaction__c]
+    );
+
+    return stats;
+}
 }

@@ -3,8 +3,59 @@
     <!--  FAMILY SCREEN -->
     <template if:false={showMembers}>
 
-        <lightning-card title="Family Dashboard">
-            
+       
+        <lightning-card>
+
+<div class="header-section">
+    <h1>🏠 Family Dashboard</h1>
+    <p>Manage Families & Family Members</p>
+</div>
+         
+<h2 class="dashboard-title">
+    Dashboard Summary
+</h2>
+
+
+<div class="stats-container">
+
+    <div class="stat-card">
+        <div class="stat-number">
+            {totalFamilies}
+        </div>
+        <div class="stat-label">
+            🏠 Total Families
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-number">
+            {totalMembers}
+        </div>
+        <div class="stat-label">
+            👤 Total Members
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-number">
+            {activeLoans}
+        </div>
+        <div class="stat-label">
+            🏦 Active Loans
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-number">
+            {totalTransactions}
+        </div>
+        <div class="stat-label">
+            💰 Transactions
+        </div>
+    </div>
+
+</div>
+    
          <!-- ADD BUTTON (RIGHT SIDE) -->
     
     <div class="slds-grid slds-grid_align-end slds-wrap slds-p-horizontal_small slds-m-bottom_small">
@@ -28,16 +79,19 @@
     </lightning-button>
 
     </div>
-    <div class="slds-col slds-size_1-of-1 slds-m-bottom_small">
+    
+  <div class="slds-box slds-theme_default slds-m-bottom_medium">
 
-                <!-- SEARCH -->
-                <lightning-input
-                    type="search"
-                    label="Search"
-                    onchange={handleSearch}>
-                </lightning-input>
-    </div>
-            
+    <lightning-input
+        type="search"
+        label="🔍 Search Family"
+        onchange={handleSearch}>
+    </lightning-input>
+
+</div>
+
+
+         <template if:true={families.length}>   
             <!-- TABLE -->
             <lightning-datatable
                 key-field="Id"
@@ -46,8 +100,26 @@
                 onrowaction={handleRowAction}
                 onrowselection={handleRowSelection}>
             </lightning-datatable>
+         </template>
+        
+    <template if:false={families.length}>
 
-        </lightning-card>
+    <div class="empty-state">
+
+        <div class="empty-icon">
+            📂
+        </div>
+
+        <h2>No Families Found</h2>
+
+        <p>
+            Click Add Family to create your first family.
+        </p>
+
+    </div>
+
+  </template>
+  </lightning-card>
 
     </template>
 
@@ -58,7 +130,8 @@
 
             <c-member 
                 family-id={selectedFamilyId}
-                onbacktofamily={handleBack}>
+                onbacktofamily={handleBack}
+                onrefreshdashboard={handleDashboardRefresh}>
             </c-member>
 
      </template>
@@ -92,6 +165,8 @@
                     <lightning-input
                         type="number"
                         label="Age"
+                        max="120"
+                        min="1"
                         onchange={handleAge}>
                     </lightning-input>
 
@@ -143,7 +218,10 @@
                 </div>
 
                 <footer class="slds-modal__footer">
-                    <lightning-button label="Cancel" onclick={closeEditModal}></lightning-button>
+                    <lightning-button label="Cancel"
+                    class="slds-m-right_small"
+                    onclick={closeEditModal}>
+                </lightning-button>
                     <lightning-button label="Update" variant="brand" onclick={updateFamilyHandler}></lightning-button>
                 </footer>
 
@@ -152,7 +230,50 @@
         <div class="slds-backdrop slds-backdrop_open"></div>
     </template>
 
-    <!--  DELETE CONFIRM MODAL -->
+    
+
+    <!-- SINGLE DELETE MODAL -->
+<template if:true={showDeleteModal}>
+
+    <section class="slds-modal slds-fade-in-open">
+
+        <div class="slds-modal__container">
+
+            <header class="slds-modal__header">
+                <h2>Confirm Delete</h2>
+            </header>
+
+            <div class="slds-modal__content slds-p-around_medium">
+
+                 <p>
+                        Are you sure you want to delete "{familyName}"?
+                    </p>
+
+            </div>
+
+            <footer class="slds-modal__footer">
+
+                <lightning-button
+                    label="Cancel"
+                    class="slds-m-right_small"
+                    onclick={closeDeleteModal}>
+                </lightning-button>
+
+                <lightning-button
+                    label="Delete"
+                    variant="destructive"
+                    onclick={confirmDelete}>
+                </lightning-button>
+
+            </footer>
+
+        </div>
+
+    </section>
+
+    <div class="slds-backdrop slds-backdrop_open"></div>
+
+</template>
     <!-- BULK DELETE CONFIRM MODAL -->
 <template if:true={showBulkDeleteModal}>
 
@@ -178,6 +299,7 @@
 
                 <lightning-button
                     label="Cancel"
+                    class="slds-m-right_small"
                     onclick={closeBulkDeleteModal}>
                 </lightning-button>
 

@@ -1,6 +1,10 @@
 <template>
 
-    <lightning-card title="Loan Dashboard">
+    <lightning-card>
+
+<div class="loan-header">
+    💰 Loan Dashboard
+</div>
 
         <div class="slds-p-around_small">
 
@@ -13,16 +17,90 @@
 
         <div class="slds-p-around_medium">
 
-            <lightning-datatable
+            <template if:true={hasLoans}>
 
-                key-field="Id"
+    <lightning-datatable
+        key-field="Id"
+        data={loans}
+        columns={columns}>
+    </lightning-datatable>
 
-                data={loans}
+    <div class="progress-section-title">
+    📊 Loan Progress Tracking
+</div>
 
-                columns={columns}>
-            </lightning-datatable>
+    <template if:true={hasLoans}>
+
+    <div class="slds-m-top_medium">
+
+        <template for:each={loans} for:item="loan">
+
+            <div
+                key={loan.Id}
+                class="progress-card">
+
+                <div class="progress-header">
+
+                    <strong>{loan.memberName}</strong>
+
+                </div>
+
+                <div class="slds-m-bottom_x-small">
+
+                    Paid EMI :
+                    {loan.emiProgress}
+
+                </div>
+
+                <div class="progress-status">
+
+                        {loan.progressStatus}
+
+                </div>
+
+                <lightning-progress-bar
+                    value={loan.progress}>
+                </lightning-progress-bar>
+
+                <div class="slds-m-top_x-small">
+
+                    {loan.progress}%
+
+                </div>
+
+            </div>
+
+        </template>
+
+    </div>
+
+</template>
+
+</template>
+
+<template if:true={dataLoaded}>
+
+    <template if:false={loans.length}>
+
+        <div class="empty-state">
+
+            <div class="empty-icon">
+                🏦
+            </div>
+
+            <h2>No Loans Found</h2>
+
+            <p>
+                No loan records available for this member.
+            </p>
 
         </div>
+
+    </template>
+
+     </template>
+    </div>
+        
 
     </lightning-card>
 

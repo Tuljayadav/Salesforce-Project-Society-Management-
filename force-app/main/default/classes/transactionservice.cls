@@ -21,6 +21,7 @@ public with sharing class transactionservice {
 }
     @AuraEnabled
     public static void createTransaction(
+        
 
     Id memberId,
     Decimal amount,
@@ -28,7 +29,7 @@ public with sharing class transactionservice {
     String typeValue
      )
  {
-
+    System.debug('TYPE VALUE = ' + typeValue);
     Integer currentMonth = paymentDate.month();
     Integer currentYear = paymentDate.year();
 
@@ -100,4 +101,26 @@ public with sharing class transactionservice {
 
         insert txn;
     }
+
+    @AuraEnabled
+    public static List<AggregateResult> getMonthlyContributions(Id familyId) {
+
+    return [
+
+        SELECT
+            CALENDAR_MONTH(payment_date__c) monthNo,
+            SUM(amount__c) totalAmount
+
+        FROM Transaction__c
+
+        WHERE
+            type__c = 'Contribution'
+            AND member__r.Family__c = :familyId
+
+        GROUP BY CALENDAR_MONTH(payment_date__c)
+
+        ORDER BY CALENDAR_MONTH(payment_date__c)
+
+    ];
+}
 }

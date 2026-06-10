@@ -61,7 +61,8 @@ public with sharing class Loanservice {
             Loan_date__c,
             paid_EMI__c,
             Remaining_EMI__c,
-            Status__c
+            Status__c,
+            paper_fee__c
 
         FROM loan__c
 
@@ -110,7 +111,7 @@ public with sharing class Loanservice {
         throw new AuraHandledException(
             'No active loan is found'
         );
-        }
+  }
     @AuraEnabled
     public static void updateLoanEMI(Id memberId) {
 

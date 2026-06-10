@@ -1,0 +1,48 @@
+.transaction-header{
+    background: linear-gradient(90deg,#0176d3,#00a1e0);
+    color:white;
+    padding:15px;
+    font-size:22px;
+    font-weight:bold;
+    border-radius:8px;
+}
+.button-section{
+    margin-top:20px;
+}
+.empty-state {
+
+    text-align: center;
+
+    padding: 60px;
+
+    background: white;
+
+    border-radius: 16px;
+
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+
+    margin-top: 20px;
+}
+
+.empty-icon {
+
+    font-size: 60px;
+
+    margin-bottom: 20px;
+}
+
+.empty-state h2 {
+
+    color: #0176d3;
+
+    font-size: 30px;
+
+    margin-bottom: 10px;
+}
+
+.empty-state p {
+
+    color: #666;
+
+    font-size: 16px;
+}

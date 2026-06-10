@@ -1,3 +1,5 @@
+import getDashboardStats
+from '@salesforce/apex/Familyservice.getDashboardStats';
 import { LightningElement, track, wire } from 'lwc';
 import searchFamily from '@salesforce/apex/Familyservice.searchFamily';
 import createFamilyWithHead from '@salesforce/apex/Familyservice.createFamilyWithHead';
@@ -5,6 +7,7 @@ import deleteFamily from '@salesforce/apex/Familyservice.deleteFamily';
 import updateFamily from '@salesforce/apex/Familyservice.updateFamily'; import getFamilyMembers from '@salesforce/apex/Familyservice.getFamilyMembers';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import { refreshApex } from '@salesforce/apex';
+
 
 export default class FamilyDashboard extends LightningElement {
 
@@ -32,10 +35,14 @@ export default class FamilyDashboard extends LightningElement {
     deleteRecordId;
 
     selectedRows = [];
-
+    totalFamilies = 0;
+    totalMembers = 0;
+    activeLoans = 0;
+    totalTransactions = 0;
     wiredResult;
+    wiredDashboardResult;
 
-    //  COLUMNS (View button + Dropdown BOTH)
+    //  COLUMNS 
     columns = [
         { label: 'Family Name', fieldName: 'Name' },
         { label: 'Head of Family', fieldName: 'headName' },
@@ -64,6 +71,21 @@ export default class FamilyDashboard extends LightningElement {
             }
         }
     ];
+    
+
+    @wire(getDashboardStats)
+    wiredStats(result){
+
+        this.wiredDashboardResult = result;
+
+    if(result.data){
+
+        this.totalFamilies = result.data.totalFamilies;
+        this.totalMembers = result.data.totalMembers;
+        this.activeLoans = result.data.activeLoans;
+        this.totalTransactions = result.data.totalTransactions;
+    }
+}
 
     //  DATA LOAD
     @wire(searchFamily, { searchKey: '$searchKey' })
@@ -74,7 +96,7 @@ export default class FamilyDashboard extends LightningElement {
             this.families = result.data.map(fam => {
                 return {
                     ...fam,
-                    headName: fam.Head_of_Family__r
+                    headName: fam.Head_of_Family__r 
                         ? fam.Head_of_Family__r.Name
                         : 'N/A'
                 };
@@ -157,7 +179,10 @@ export default class FamilyDashboard extends LightningElement {
         .then(() => {
             this.showToast('Success', 'Family deleted', 'success');
             this.showDeleteModal = false;
-            return refreshApex(this.wiredResult);
+             return Promise.all([
+        refreshApex(this.wiredResult),
+        refreshApex(this.wiredDashboardResult)
+    ]);
         })
         .catch(error => {
             console.error(error);
@@ -223,17 +248,19 @@ export default class FamilyDashboard extends LightningElement {
         return;
     }
 
+    
+
     // OPEN CONFIRMATION MODAL
     this.showBulkDeleteModal = true;
-}
+    }
 
 
-closeBulkDeleteModal() {
+    closeBulkDeleteModal() {
 
-    this.showBulkDeleteModal = false;
-}
+        this.showBulkDeleteModal = false;
+    }
 
-confirmBulkDelete() {
+    confirmBulkDelete() {
 
     const ids = this.selectedRows.map(row => row.Id);
 
@@ -253,7 +280,10 @@ confirmBulkDelete() {
 
         this.showBulkDeleteModal = false;
 
-        return refreshApex(this.wiredResult);
+         return Promise.all([
+        refreshApex(this.wiredResult),
+        refreshApex(this.wiredDashboardResult)
+    ]);
     })
 
     .catch(error => {
@@ -270,13 +300,26 @@ confirmBulkDelete() {
     //  CREATE FAMILY
     saveFamily() {
         if (!this.familyName) {
+        
             this.showToast('Error', 'Family Name is required', 'error');
             return;
         }
 
-        if (!/^[0-9]{10}$/.test(this.phone)) {
+        const familyNameRegex = /[A-Za-z]/;
 
-        this.showToast(
+if(!familyNameRegex.test(this.familyName)) {
+
+    this.showToast(
+        'Error',
+        'Family Name must contain at least one alphabet',
+        'error'
+    );
+
+     return;
+}
+
+        if (this.phone  && !/^[0-9]{10}$/.test(this.phone)) {
+            this.showToast(
             'Error',
             'Phone number must contain exactly 10 digits',
             'error'
@@ -285,6 +328,43 @@ confirmBulkDelete() {
         return;
     }
 
+
+    const headNameRegex = /^[A-Za-z ]+$/;
+    if(!headNameRegex.test(this.memberName)) {
+
+    this.showToast(
+        'Error',
+        'Head of Family Name can contain only letters and spaces',
+        'error'
+    );
+
+    return;
+}
+
+
+        const addressRegex = /[A-Za-z]/;
+
+        if(!addressRegex.test(this.address)) {
+
+            this.showToast(
+                'Error',
+                'Address must contain at least one alphabet',
+                'error'
+            );
+
+            return;
+        }
+
+        if(this.age && (this.age < 1 || this.age > 120)) {
+
+            this.showToast(
+                'Error',
+                'Please enter a valid age between 1 and 120',
+                'error'
+            );
+
+            return;
+        }
         createFamilyWithHead({
 
             familyName: this.familyName,
@@ -301,14 +381,18 @@ confirmBulkDelete() {
             this.address = '';
             this.age = '';
             this.phone = '';
-            return refreshApex(this.wiredResult);
+              return Promise.all([
+        refreshApex(this.wiredResult),
+        refreshApex(this.wiredDashboardResult)
+    ]);
+                 
         })
         .catch(error => {
             console.error(error);
             this.showToast('Error', 'Error creating family', 'error');
         });
+        
     }
-
     //  UPDATE FAMILY
     updateFamilyHandler() {
         console.log('HEAD ID BEFORE UPDATE:', this.selectedHeadId);
@@ -321,7 +405,11 @@ confirmBulkDelete() {
         .then(() => {
             this.showToast('Success', 'Family updated', 'success');
             this.showEditModal = false;
-            return refreshApex(this.wiredResult);
+            
+             return Promise.all([
+        refreshApex(this.wiredResult),
+        refreshApex(this.wiredDashboardResult)
+    ]);
         })
         .catch(error => {
             console.error(error);
@@ -329,11 +417,18 @@ confirmBulkDelete() {
         });
     }
 
+    async handleDashboardRefresh() {
+
+    await refreshApex(this.wiredDashboardResult);
+
+    console.log('Dashboard Refreshed');
+}
     //  BACK
     handleBack() {
         this.showMembers = false;
         this.selectedFamilyId = null;
     }
+    
 
     //  TOAST
     showToast(title, message, variant) {
@@ -341,4 +436,9 @@ confirmBulkDelete() {
             new ShowToastEvent({ title, message, variant })
         );
     }
+
+    refreshDashboard() {
+
+    refreshApex(this.wiredDashboardResult);
+}
 }

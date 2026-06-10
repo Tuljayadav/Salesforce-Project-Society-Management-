@@ -1,11 +1,15 @@
 <template>
 
-    <lightning-card title="Transaction  Dashboard">
+    <lightning-card>
 
-        <div class="slds-grid slds-gutters slds-p-left_small slds-p-bottom_small">
+<div class="transaction-header">
+    💳 Transaction Dashboard
+</div>
+        <div class="slds-grid slds-gutters slds-p-left_small slds-p-bottom_small button-section">
 
     <lightning-button
         label="⬅ Back to Family"
+        class="slds-m-right_small"
         onclick={handleBackFamily}>
     </lightning-button>
 
@@ -15,12 +19,43 @@
     </lightning-button>
 
 </div>
-       <lightning-datatable
-            key-field="Id"
-            data={transactions}
-            columns={columns}>
-        </lightning-datatable>
+       <template if:true={transactions.length}>
 
+    <lightning-datatable
+        key-field="Id"
+        data={transactions}
+        columns={columns}>
+    </lightning-datatable>
+
+     <c-chart-dashboard
+        family-id={familyId}
+         class="chartCmp">
+
+    </c-chart-dashboard>
+
+</template>
+
+<template if:true={dataLoaded}>
+
+    <template if:false={transactions.length}>
+
+        <div class="empty-state">
+
+            <div class="empty-icon">
+                💰
+            </div>
+
+            <h2>No Transactions Found</h2>
+
+            <p>
+                No transaction records available.
+            </p>
+
+        </div>
+
+    </template>
+
+</template>
    </lightning-card>
 
 </template>
